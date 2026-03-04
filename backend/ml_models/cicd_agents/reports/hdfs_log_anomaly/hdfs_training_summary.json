@@ -1,0 +1,6 @@
+{
+    "train_lines": 50000,
+    "eval_lines": 5000,
+    "eval_anomaly_count": 461,
+    "eval_anomaly_rate": 0.0922
+}

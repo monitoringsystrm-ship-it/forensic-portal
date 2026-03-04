@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Software Requirements Specification – Forensic Monitoring System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 1.5rem;
+      line-height: 1.6;
+      color: #222;
+      background: #f7f7f9;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    h1, h2, h3, h4 {
+      color: #111827;
+    }
+    h1 {
+      font-size: 1.9rem;
+      margin-bottom: 0.25rem;
+    }
+    h2 {
+      margin-top: 1.75rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.35rem;
+    }
+    h3 {
+      margin-top: 1.1rem;
+    }
+    nav {
+      background: #f3f4f6;
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0 1.5rem;
+      font-size: 0.95rem;
+    }
+    nav ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      columns: 2;
+      column-gap: 2rem;
+    }
+    nav li {
+      margin: 0.15rem 0;
+    }
+    nav a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 720px) {
+      body {
+        padding: 1rem;
+      }
+      main {
+        padding: 1rem;
+      }
+      nav ul {
+        columns: 1;
+      }
+    }
+    ul, ol {
+      padding-left: 1.3rem;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 0.4rem 0.6rem;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    thead {
+      background: #f9fafb;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Software Requirements Specification (SRS)</h1>
+    <p><strong>System:</strong> Forensic Monitoring System for CI/CD Pipelines</p>
+    <p><strong>Version:</strong> 1.0</p>
+  </header>
+
+  <section aria-labelledby="toc-title">
+    <h2 id="toc-title">Table of Contents</h2>
+    <nav>
+      <ul>
+        <li><a href="#sec-1">1 Introduction</a></li>
+        <li><a href="#sec-1-1">1.1 Purpose</a></li>
+        <li><a href="#sec-1-2">1.2 Scope</a></li>
+        <li><a href="#sec-1-3">1.3 Definitions, Acronyms, and Abbreviations</a></li>
+        <li><a href="#sec-1-4">1.4 References</a></li>
+        <li><a href="#sec-1-5">1.5 Overview</a></li>
+        <li><a href="#sec-2">2 Overall Descriptions</a></li>
+        <li><a href="#sec-2-1">2.1 Product Perspective</a></li>
+        <li><a href="#sec-2-1-1">2.1.1 System Interfaces</a></li>
+        <li><a href="#sec-2-1-2">2.1.2 User Interfaces</a></li>
+        <li><a href="#sec-2-1-3">2.1.3 Hardware Interfaces</a></li>
+        <li><a href="#sec-2-1-4">2.1.4 Software Interfaces</a></li>
+        <li><a href="#sec-2-1-5">2.1.5 Communication Interfaces</a></li>
+        <li><a href="#sec-2-1-6">2.1.6 Memory Constraints</a></li>
+        <li><a href="#sec-2-1-7">2.1.7 Operations</a></li>
+        <li><a href="#sec-2-1-8">2.1.8 Site Adaptation Requirements</a></li>
+        <li><a href="#sec-2-2">2.2 Product Functions</a></li>
+        <li><a href="#sec-2-3">2.3 User Characteristics</a></li>
+        <li><a href="#sec-2-4">2.4 Constraints</a></li>
+        <li><a href="#sec-2-5">2.5 Assumptions and Dependencies</a></li>
+        <li><a href="#sec-2-6">2.6 Apportioning of Requirements</a></li>
+        <li><a href="#sec-3">3 Specific Requirements</a></li>
+        <li><a href="#sec-3-1">3.1 External Interface Requirements</a></li>
+        <li><a href="#sec-3-1-1">3.1.1 User Interfaces</a></li>
+        <li><a href="#sec-3-1-2">3.1.2 Hardware Interfaces</a></li>
+        <li><a href="#sec-3-1-3">3.1.3 Software Interfaces</a></li>
+        <li><a href="#sec-3-1-4">3.1.4 Communication Interfaces</a></li>
+        <li><a href="#sec-3-2">3.2 Classes/Objects</a></li>
+        <li><a href="#sec-3-3">3.3 Performance Requirements</a></li>
+        <li><a href="#sec-3-4">3.4 Design Constraints</a></li>
+        <li><a href="#sec-3-5">3.5 Software System Attributes</a></li>
+        <li><a href="#sec-3-6">3.6 Other Requirements</a></li>
+        <li><a href="#sec-4">4 Supporting Information</a></li>
+        <li><a href="#sec-4-1">4.1 Table of Contents and Index</a></li>
+        <li><a href="#sec-4-2">4.2 Appendices</a></li>
+      </ul>
+    </nav>
+  </section>
+
+  <section id="sec-1">
+    <h2>1 Introduction</h2>
+
+    <section id="sec-1-1">
+      <h3>1.1 Purpose</h3>
+      <p>
+        The purpose of this document is to define the software requirements for the
+        Forensic Monitoring System for CI/CD pipelines and related infrastructure.
+        It serves as a contractual basis between stakeholders, developers, and testers,
+        providing a stable description of the system’s behavior, interfaces, and
+        constraints, independent of specific implementation details.
+      </p>
+    </section>
+
+    <section id="sec-1-2">
+      <h3>1.2 Scope</h3>
+      <p>
+        This document covers functional and non-functional requirements for the
+        Forensic Monitoring System, including anomaly detection in CI/CD environments,
+        forensic-ready evidence collection, cryptographic integrity verification, and
+        legal-grade reporting and chain-of-custody management. It addresses the web
+        front-end, machine learning–based backend services, and their interactions, but
+        excludes detailed deployment automation, CI/CD job definitions, and third-party
+        SOC processes that may consume the system’s outputs.
+      </p>
+    </section>
+
+    <section id="sec-1-3">
+      <h3>1.3 Definitions, Acronyms, and Abbreviations</h3>
+      <table>
+        <thead>
+        <tr>
+          <th>Term</th>
+          <th>Definition</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>CI/CD</td>
+          <td>Continuous Integration / Continuous Delivery or Deployment.</td>
+        </tr>
+        <tr>
+          <td>Forensic-ready</td>
+          <td>Design approach where systems proactively collect and preserve evidence suitable for investigations.</td>
+        </tr>
+        <tr>
+          <td>Evidence item</td>
+          <td>A structured record describing a commit, build, log line, artifact, or related event captured by the system.</td>
+        </tr>
+        <tr>
+          <td>ML</td>
+          <td>Machine Learning; statistical models trained on historical data for prediction or anomaly detection.</td>
+        </tr>
+        <tr>
+          <td>NSL-KDD / UNSW-NB15</td>
+          <td>Public intrusion-detection and network anomaly datasets used to train some anomaly detection models.</td>
+        </tr>
+        <tr>
+          <td>SBOM</td>
+          <td>Software Bill of Materials, a machine-readable inventory of components and dependencies in a software artifact.</td>
+        </tr>
+        <tr>
+          <td>SRS</td>
+          <td>Software Requirements Specification.</td>
+        </tr>
+        <tr>
+          <td>REST</td>
+          <td>Representational State Transfer, a style of web API using HTTP verbs and resources.</td>
+        </tr>
+        <tr>
+          <td>HDFS</td>
+          <td>Hadoop Distributed File System, a distributed storage layer whose logs are analyzed by the system.</td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="sec-1-4">
+      <h3>1.4 References</h3>
+      <p>
+        Detailed references are listed in Section 4.2 to keep them grouped at the end
+        of this document.
+      </p>
+    </section>
+
+    <section id="sec-1-5">
+      <h3>1.5 Overview</h3>
+      <p>
+        The Forensic Monitoring System is a web-based platform that integrates with
+        CI/CD environments to continuously collect evidence, detect anomalies in logs
+        and deployment activity, verify the integrity of artifacts using cryptographic
+        mechanisms, and generate reports suitable for internal and external
+        investigations. It comprises a React-based front-end and a Python/Flask
+        backend exposing REST endpoints for model training, inference, evidence
+        aggregation, and report generation. Primary users include security engineers,
+        DevOps teams, and compliance or audit personnel who require timely, accurate,
+        and tamper-evident information about the software delivery pipeline.
+      </p>
+    </section>
+  </section>
+
+  <section id="sec-2">
+    <h2>2 Overall Descriptions</h2>
+    <p>
+      This section provides a high-level description of the system and its operating
+      context, intended to remain relatively stable across multiple releases.
+    </p>
+
+    <section id="sec-2-1">
+      <h3>2.1 Product Perspective</h3>
+      <p>
+        The Forensic Monitoring System is an independent web application that can be
+        deployed alongside existing CI/CD infrastructure such as Jenkins or GitHub
+        Actions. Unlike traditional monitoring dashboards that focus primarily on
+        performance or availability metrics, this system emphasizes forensic readiness,
+        evidentiary integrity, and investigation support. Compared to generic SIEM or
+        log aggregation tools, it adds specialized ML-driven anomaly detection over
+        build logs and network data, chain-of-custody tracking for evidence, and
+        standards-aligned reporting such as ISO/IEC 27037 and NIST SP 800-86.
+      </p>
+
+      <section id="sec-2-1-1">
+        <h4>2.1.1 System Interfaces</h4>
+        <p>
+          The system is implemented as a web server exposing REST APIs and a
+          browser-based single-page application. It interfaces with the host operating
+          system through:
+        </p>
+        <ul>
+          <li>File system access to local datasets including HDFS logs, Hadoop logs, NSL-KDD, UNSW-NB15, malware CSVs, and attack/breach CSVs.</li>
+          <li>Network sockets to serve HTTP or HTTPS requests.</li>
+        </ul>
+      </section>
+
+      <section id="sec-2-1-2">
+        <h4>2.1.2 User Interfaces</h4>
+        <p>
+          The primary user interface is a responsive web dashboard with the following
+          top-level areas:
+        </p>
+        <ul>
+          <li>Forensic-Ready CI/CD Agents: configuration of evidence capture, agent status view, and HDFS or Hadoop anomaly summaries.</li>
+          <li>Anomaly Detection: automated detection panels, timelines, and training reports for commit and dependency patterns.</li>
+          <li>Integrity Verification: tools for SBOM hashing, SHA-256 verification, Merkle root computation, and digital signatures.</li>
+          <li>Forensic Reporting Portal: evidence timelines, integrity proofs, chain-of-custody views, ML training views, and report generator.</li>
+        </ul>
+        <p>
+          The interface is optimized for desktop but remains usable on tablets and
+          mobile devices through responsive layout and flexible grids.
+        </p>
+      </section>
+
+      <section id="sec-2-1-3">
+        <h4>2.1.3 Hardware Interfaces</h4>
+        <p>
+          The system does not require specialized hardware beyond commodity servers or
+          developer workstations. It operates on standard processor architectures with
+          sufficient memory and disk capacity to store datasets and generated reports.
+        </p>
+      </section>
+
+      <section id="sec-2-1-4">
+        <h4>2.1.4 Software Interfaces</h4>
+        <p>
+          The system interfaces with the following software components:
+        </p>
+        <ul>
+          <li>Modern web browsers supporting ES6 JavaScript and the Fetch API.</li>
+          <li>Python runtime and libraries for ML including numerical processing, data frames, model training, and visualization.</li>
+          <li>Operating-system file system for loading training data and persisting models and reports.</li>
+          <li>Optional CI/CD tooling that may forward logs or events in future integrations.</li>
+        </ul>
+      </section>
+
+      <section id="sec-2-1-5">
+        <h4>2.1.5 Communication Interfaces</h4>
+        <p>
+          Client and server communication uses HTTP or HTTPS with JSON payloads over a
+          REST-style API. Within a deployment, the system may also communicate with
+          CI/CD agents or other internal services using HTTP-based endpoints or file
+          drops, depending on site integration patterns.
+        </p>
+      </section>
+
+      <section id="sec-2-1-6">
+        <h4>2.1.6 Memory Constraints</h4>
+        <p>
+          The system is intended to run on machines with at least 8 GB of RAM for
+          moderate-size datasets. Training jobs on larger datasets may benefit from
+          16 GB or more. At runtime the front-end has no special memory constraints
+          beyond typical browser limits, while the backend should stay within the
+          available memory when loading models and computing reports.
+        </p>
+      </section>
+
+      <section id="sec-2-1-7">
+        <h4>2.1.7 Operations</h4>
+        <p>
+          Normal operations include:
+        </p>
+        <ul>
+          <li>Starting and stopping the backend API service.</li>
+          <li>Running the front-end web server or serving static assets.</li>
+          <li>Triggering model training and monitoring progress from the UI.</li>
+          <li>Running anomaly detection jobs, evidence collection, and malware classification.</li>
+          <li>Generating and exporting forensic reports.</li>
+        </ul>
+        <p>
+          Special operations include system upgrades, dataset replacement or refresh,
+          model re-training on new corpora, and archival of legacy evidence or report
+          data.
+        </p>
+      </section>
+
+      <section id="sec-2-1-8">
+        <h4>2.1.8 Site Adaptation Requirements</h4>
+        <p>
+          Each installation may adapt the system by configuring:
+        </p>
+        <ul>
+          <li>File paths to locally stored logs and datasets.</li>
+          <li>CI/CD agent configuration for evidence capture frequency and scope.</li>
+          <li>Integration endpoints or secure storage locations for generated reports.</li>
+        </ul>
+        <p>
+          Deployment environments should provide appropriate network access policies,
+          TLS termination, and storage quotas consistent with local security and
+          compliance requirements.
+        </p>
+      </section>
+    </section>
+
+    <section id="sec-2-2">
+      <h3>2.2 Product Functions</h3>
+      <p>
+        Major functions of the Forensic Monitoring System include:
+      </p>
+      <ul>
+        <li>Continuous collection of CI/CD-related evidence including build logs and anomaly summaries.</li>
+        <li>Machine learning based anomaly detection for commit patterns, network-style dependency anomalies, and HDFS or Hadoop logs.</li>
+        <li>Visualization of evidence timelines and correlation of events across commits, builds, artifacts, and anomalies.</li>
+        <li>Generation and verification of cryptographic integrity artifacts including hashes, Merkle roots, HMACs, and digital signatures.</li>
+        <li>Chain-of-custody tracking for evidence including status, custodianship, and integrity checksums.</li>
+        <li>Training, evaluation, and reporting for ML models supporting attack and breach type classification.</li>
+        <li>Creation of standards aligned forensic reports with configurable content and export options.</li>
+      </ul>
+    </section>
+
+    <section id="sec-2-3">
+      <h3>2.3 User Characteristics</h3>
+      <p>
+        Typical users of the system include:
+      </p>
+      <ul>
+        <li>Security engineers with experience in incident response and several years of working with logs and monitoring tools.</li>
+        <li>DevOps and SRE practitioners familiar with CI/CD tools, build pipelines, and deployment workflows.</li>
+        <li>Compliance officers and auditors who may have limited technical depth but need consistent, readable reports and evidence summaries.</li>
+        <li>Data scientists or ML engineers who may operate and tune the underlying models.</li>
+      </ul>
+      <p>
+        Users are assumed to be comfortable with web interfaces and basic security
+        concepts. No programming background is strictly required to operate the
+        system.
+      </p>
+    </section>
+
+    <section id="sec-2-4">
+      <h3>2.4 Constraints</h3>
+      <ul>
+        <li>The system must use HTTP or HTTPS and JSON for its public API to remain compatible with browsers and common automation tools.</li>
+        <li>The implementation is constrained to the existing technology stack of React on the client and Flask with Python ML libraries on the server.</li>
+        <li>Data and models are stored on the host file system and no external database is assumed in the baseline design.</li>
+        <li>Use of public datasets for malware or intrusion detection may be restricted by licensing or organizational policy.</li>
+        <li>Security and privacy policies may limit which environment variables, logs, or secrets can be collected or retained as evidence.</li>
+      </ul>
+    </section>
+
+    <section id="sec-2-5">
+      <h3>2.5 Assumptions and Dependencies</h3>
+      <ul>
+        <li>The system will run on modern operating systems with a supported Python runtime.</li>
+        <li>Users will access the system through up to date browsers that support standard web APIs.</li>
+        <li>Required training datasets are present and accessible at configured file paths on the backend host.</li>
+        <li>Time synchronization is available so that timestamps across evidence items and logs are comparable.</li>
+        <li>Future versions may depend on direct integration with CI/CD tools via APIs or webhooks.</li>
+      </ul>
+    </section>
+
+    <section id="sec-2-6">
+      <h3>2.6 Apportioning of Requirements</h3>
+      <p>
+        Initial releases prioritize:
+      </p>
+      <ul>
+        <li>Core anomaly detection and CI/CD evidence collection.</li>
+        <li>Cryptographic hashing and basic chain-of-custody views.</li>
+        <li>Baseline reporting capabilities for internal use.</li>
+      </ul>
+      <p>
+        Subsequent releases may extend:
+      </p>
+      <ul>
+        <li>Advanced ML visualizations and custom model configuration.</li>
+        <li>Deeper CI/CD platform integrations and alerting.</li>
+        <li>Role based access control, multi-tenant support, and long-term archival workflows.</li>
+      </ul>
+    </section>
+  </section>
+
+  <section id="sec-3">
+    <h2>3 Specific Requirements</h2>
+
+    <section id="sec-3-1">
+      <h3>3.1 External Interface Requirements</h3>
+
+      <section id="sec-3-1-1">
+        <h4>3.1.1 User Interfaces</h4>
+        <p>
+          The system shall provide a browser-based UI with the following key screens:
+        </p>
+        <ul>
+          <li>A main navigation view with tabs for CI/CD Agents, Anomaly Detection, Integrity Verification, and Reporting Portal.</li>
+          <li>A CI/CD Agents view showing agent status, evidence counts, configuration controls, and HDFS or Hadoop anomaly overviews.</li>
+          <li>An Anomaly Detection view for running detection, viewing metrics, and exploring timelines of detected anomalies.</li>
+          <li>An Integrity Verification view offering SBOM hash computation, SHA-256 verification, Merkle root computation, and digital signature workflows.</li>
+          <li>A Reporting Portal view with evidence visualizations, integrity proofs, chain-of-custody logs, ML model status, and report generation.</li>
+        </ul>
+        <p>
+          All screens shall be usable on displays down to common tablet and phone
+          widths through responsive layout.
+        </p>
+      </section>
+
+      <section id="sec-3-1-2">
+        <h4>3.1.2 Hardware Interfaces</h4>
+        <p>
+          The software shall not require direct control of specialized devices. It
+          shall rely on:
+        </p>
+        <ul>
+          <li>Standard network interfaces configured by the host operating system.</li>
+          <li>Local storage volumes where datasets and model artifacts are stored.</li>
+        </ul>
+      </section>
+
+      <section id="sec-3-1-3">
+        <h4>3.1.3 Software Interfaces</h4>
+        <p>
+          The system shall interface with:
+        </p>
+        <ul>
+          <li>The host operating system file system for reading datasets and writing trained models and reports.</li>
+          <li>Python libraries for data loading, model training, visualization, hashing, and cryptographic operations.</li>
+          <li>Web browsers that invoke REST endpoints exposed by the backend.</li>
+        </ul>
+      </section>
+
+      <section id="sec-3-1-4">
+        <h4>3.1.4 Communication Interfaces</h4>
+        <p>
+          The backend shall expose REST APIs using HTTP or HTTPS on a configurable
+          port. All application level messages between front end and backend shall use
+          UTF-8 encoded JSON. For secure deployments, HTTPS termination shall be
+          provided either directly by the application server or via a reverse proxy.
+        </p>
+      </section>
+    </section>
+
+    <section id="sec-3-2">
+      <h3>3.2 Classes/Objects</h3>
+      <p>
+        The following conceptual classes organize the detailed requirements. Each is
+        categorized as essential, desirable, or optional.
+      </p>
+      <ul>
+        <li>
+          EvidenceItem (essential): represents a unit of collected evidence with
+          fields such as identifier, type, timestamp, description, metadata, and
+          integrity checksum.
+        </li>
+        <li>
+          AnomalyRecord (essential): represents a detected anomaly with fields for
+          model, category, confidence, severity, and supporting details.
+        </li>
+        <li>
+          CicdAgent (essential): represents a monitoring agent with identifier, type,
+          status, metrics, and configuration.
+        </li>
+        <li>
+          IntegrityProof (essential): represents a cryptographic proof including
+          hash, algorithm, optional signatures, Merkle roots, and timestamps.
+        </li>
+        <li>
+          CustodyLog (essential): represents a chain-of-custody entry including
+          evidence ID, custodian, location, status, history, and checksum.
+        </li>
+        <li>
+          MlModelState (desirable): represents the training and evaluation status of
+          an ML model including metrics and available reports.
+        </li>
+        <li>
+          ForensicReport (essential): represents a generated report with identifier,
+          standard, format, generated timestamp, summary, sections, and embedded data.
+        </li>
+        <li>
+          UserSession or AccessContext (optional): represents user identity and roles
+          if authentication and authorization are introduced in later versions.
+        </li>
+      </ul>
+    </section>
+
+    <section id="sec-3-3">
+      <h3>3.3 Performance Requirements</h3>
+      <ul>
+        <li>The UI shall display core dashboard views within a reasonable time under normal network conditions for moderate data volumes.</li>
+        <li>The system shall support displaying several thousand evidence items without becoming unusable for filtering and basic navigation.</li>
+        <li>Batch anomaly detection and model training jobs may run for minutes depending on dataset size, and the system shall expose completion indicators.</li>
+        <li>Integrity checks such as SHA-256 computation and Merkle root calculation shall complete interactively for typical text or JSON payloads.</li>
+      </ul>
+    </section>
+
+    <section id="sec-3-4">
+      <h3>3.4 Design Constraints</h3>
+      <ul>
+        <li>The client shall be implemented as a single-page application using React.</li>
+        <li>The backend shall be implemented in Python using Flask for HTTP APIs.</li>
+        <li>ML functionality shall use widely available open source libraries to ease deployment and reproducibility.</li>
+        <li>The system shall maintain a clear separation between UI, API, and ML logic to support future changes and testing.</li>
+      </ul>
+    </section>
+
+    <section id="sec-3-5">
+      <h3>3.5 Software System Attributes</h3>
+
+      <section id="sec-3-5-1">
+        <h4>3.5.1 Reliability</h4>
+        <p>
+          The system shall handle invalid inputs and missing datasets gracefully,
+          returning informative error messages rather than failing silently. Evidence
+          and anomaly data persisted to disk shall be written in a way that reduces
+          the risk of partial updates.
+        </p>
+      </section>
+
+      <section id="sec-3-5-2">
+        <h4>3.5.2 Availability</h4>
+        <p>
+          The system is intended for continuous operation during working hours and
+          may be left running for extended periods. Administrators shall be able to
+          restart the backend service without losing previously stored models,
+          evidence, or reports.
+        </p>
+      </section>
+
+      <section id="sec-3-5-3">
+        <h4>3.5.3 Security</h4>
+        <p>
+          The system shall avoid exposing sensitive environment details or raw
+          secrets in the UI or logs. When deployed in production, communications
+          should be secured via HTTPS, and access to datasets and report directories
+          shall be limited to authorized users. Future enhancements may add
+          authentication, authorization, and auditing for user actions.
+        </p>
+      </section>
+
+      <section id="sec-3-5-4">
+        <h4>3.5.4 Maintainability</h4>
+        <p>
+          The system shall be modular, with separate components for CI/CD agents,
+          anomaly detection, integrity verification, and reporting. Configuration
+          values such as dataset paths and ports shall be externalized where
+          possible. Code organization should facilitate unit and integration testing
+          of key functions.
+        </p>
+      </section>
+    </section>
+
+    <section id="sec-3-6">
+      <h3>3.6 Other Requirements</h3>
+      <ul>
+        <li>The UI text and reports shall be written in clear, concise English.</li>
+        <li>Generated reports shall be exportable in common formats such as JSON and shall provide structure to support future PDF or XML rendering.</li>
+        <li>The system shall avoid hard coding site specific paths where practical to ease relocation across environments.</li>
+      </ul>
+    </section>
+  </section>
+
+  <section id="sec-4">
+    <h2>4 Supporting Information</h2>
+
+    <section id="sec-4-1">
+      <h3>4.1 Table of Contents and Index</h3>
+      <p>
+        The table of contents for this document is provided near the beginning, after
+        the title section. No separate index is defined for this version of the SRS.
+      </p>
+    </section>
+
+    <section id="sec-4-2">
+      <h3>4.2 Appendices</h3>
+      <h4>4.2.1 References</h4>
+      <ul>
+        <li>ISO/IEC 27037: Guidelines for identification, collection, acquisition, and preservation of digital evidence.</li>
+        <li>NIST SP 800-86: Guide to Integrating Forensic Techniques into Incident Response.</li>
+        <li>NSL-KDD and UNSW-NB15 dataset documentation for network intrusion and anomaly detection.</li>
+        <li>Microsoft Malware Classification Challenge data description.</li>
+        <li>Internal project documentation and API specifications associated with the Forensic Monitoring System.</li>
+      </ul>
+
+      <h4>4.2.2 Sample Data Structures</h4>
+      <p>
+        Example evidence item and custody log structures may be provided in separate
+        technical appendices or API documentation as JSON schemas to aid integration
+        and testing.
+      </p>
+    </section>
+  </section>
+</main>
+</body>
+</html>
+
+

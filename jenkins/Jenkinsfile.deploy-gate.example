@@ -1,0 +1,32 @@
+pipeline {
+  agent any
+  environment {
+    FORENSIC_API_BASE = 'http://localhost:5000'
+  }
+  stages {
+    stage('Deploy') {
+      steps {
+        script {
+          def pipelineId = env.JOB_NAME ?: "unknown-pipeline"
+          def body = groovy.json.JsonOutput.toJson([pipeline_id: pipelineId])
+          def response = httpRequest(
+            httpMode: "POST",
+            contentType: "APPLICATION_JSON",
+            url: "${env.FORENSIC_API_BASE}/api/ml/integration/flow/decision",
+            requestBody: body,
+            validResponseCodes: "200:299"
+          )
+          def data = new groovy.json.JsonSlurperClassic().parseText(response.content)
+          def decision = (data.decision ?: "ALLOW").toString()
+          if (decision == "BLOCK_DEPLOYMENT") {
+            error("Forensic integration decision is BLOCK_DEPLOYMENT")
+          } else if (decision == "ALERT") {
+            input(message: "Forensic integration decision is ALERT. Approve deployment?", ok: "Deploy")
+          }
+        }
+        echo "Running deploy steps"
+      }
+    }
+  }
+}
+

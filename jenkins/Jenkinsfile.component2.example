@@ -1,0 +1,46 @@
+@Library('sbom-forensics') _
+
+pipeline {
+  agent any
+  environment {
+    FORENSIC_API_BASE = 'http://localhost:5000'
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        script {
+          env.STAGE_INDEX = "1"
+        }
+        sbomCapture('checkout') {
+          checkout scm
+        }
+      }
+    }
+    stage('Build') {
+      steps {
+        script {
+          env.STAGE_INDEX = "2"
+        }
+        sbomCapture('build') {
+          sh 'npm ci'
+          sh 'npm run build'
+        }
+      }
+    }
+    stage('Dockerize') {
+      steps {
+        script {
+          env.STAGE_INDEX = "3"
+        }
+        sbomCapture('dockerize') {
+          sh 'docker build -t forensic-portal:${BUILD_NUMBER} .'
+        }
+      }
+    }
+  }
+  post {
+    always {
+      publishPipelineSBOM()
+    }
+  }
+}

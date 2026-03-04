@@ -1,0 +1,121 @@
+Verified
+New endpoints are live and responding.
+Jenkins build ingestion stores evidence and commit→build mapping.
+Command sequence inference returns classification, confidence (0–1), anomaly scores, and alerts.
+Frontend lints are clean for updated files.
+
+What You Need To Do
+Expose your backend endpoint so GitHub/Jenkins can reach it (public URL or tunnel).
+Configure GitHub webhook:
+URL: https://<your-host>/api/ml/cicd-agents/github/webhook
+Events: push + pull_request
+Update Jenkins pipeline/shared library to POST build/stage payloads to:
+https://<your-host>/api/ml/cicd-agents/jenkins/build
+Send from Jenkins payload:
+build_id, build_number, pipeline_name, stage_name, stage_index
+commit_sha, branch, commands (or console_output)
+env (raw is fine; backend redacts values)
+docker (dockerfile, image, tags, build_args)
+Keep backend running on port 5000 and frontend on 3000.
+
+
+
+Verified working
+End-to-end tested successfully:
+capture stage SBOM
+finalize Merkle root
+verify pipeline
+CVE query
+artifact provenance trace
+malware hash lookup
+
+What you need to do
+Configure Jenkins shared library using files under jenkins/shared-library/vars.
+In Jenkins job/global env, set:
+FORENSIC_API_BASE (example: http://<your-host>:5000)
+Ensure Jenkins has HTTP Request + Pipeline Utility Steps plugins (used by shared library).
+Make backend reachable from Jenkins runner.
+Update your real Jenkins pipeline to wrap stages with:
+sbomCapture('stageName') { ... }
+and publishPipelineSBOM() in post { always { ... } }
+For real CVE detection quality, provide vulnerability data in stage payload (vulnerabilities) or we can integrate npm advisory feed next.
+
+Build the Jenkins integration artifact for you:
+either a reusable Jenkinsfile snippet
+or a Groovy shared-library sbomCapture + sendForensicBuildData style function for Component 1 payload pushes.
+
+
+
+Verified
+Backend compiles successfully.
+New endpoints tested end-to-end:
+ingest commits/dependencies/builds/threat intel
+run analysis
+fetch latest analysis
+Frontend lints are clean for changed files.
+
+What you need to do
+Keep sending real data into these new ingest endpoints from your pipeline and integrations:
+GitHub commit metadata + diffs
+package/lockfile dependency change records
+Jenkins run metrics (duration, success, cpu, memory, image_size)
+threat intel feeds (npm advisories, CVEs, compromised package list)
+Add/continue Jenkins payload fields (important for quality):
+duration_sec, success, cpu_percent, memory_mb, docker.image_size_mb
+commit metadata: author, commit_message, files_changed, lines_added, lines_deleted, diff
+Provide real threat intel source data regularly:
+npm advisory export
+GitHub security advisories
+CVE mapping for Node/React packages
+known compromised packages list
+Run analysis periodically:
+call POST /api/ml/anomaly-detection/incident/analyze (for example every build or hourly)
+
+If you want, next I’ll do the npm advisory/CVE ingestion so query_vulnerable_builds works automatically from dependency names/versions without manual vulnerability fields.
+
+
+
+
+Verified
+Backend compiles successfully.
+New endpoints tested end-to-end:
+ingest commits/dependencies/builds/threat intel
+run analysis
+fetch latest analysis
+Frontend lints are clean for changed files.
+
+What you need to do
+Keep sending real data into these new ingest endpoints from your pipeline and integrations:
+GitHub commit metadata + diffs
+package/lockfile dependency change records
+Jenkins run metrics (duration, success, cpu, memory, image_size)
+threat intel feeds (npm advisories, CVEs, compromised package list)
+Add/continue Jenkins payload fields (important for quality):
+duration_sec, success, cpu_percent, memory_mb, docker.image_size_mb
+commit metadata: author, commit_message, files_changed, lines_added, lines_deleted, diff
+Provide real threat intel source data regularly:
+npm advisory export
+GitHub security advisories
+CVE mapping for Node/React packages
+known compromised packages list
+Run analysis periodically:
+
+call POST /api/ml/anomaly-detection/incident/analyze (for example every build or hourly)
+If you want, next I can implement a scheduled analyzer job plus a Jenkins/GitHub ready payload template so this runs automatically without manual API calls.
+Verified
+Backend compiles and runs.
+New integration endpoints return full flow and decision successfully.
+Frontend lints are clean.
+
+What you need to do
+In Jenkins deployment stage, call:
+POST /api/ml/integration/flow/decision with your pipeline_id
+Enforce gate:
+if decision is BLOCK_DEPLOYMENT => stop deployment
+if ALERT => require manual approval
+if ALLOW => proceed
+Keep ingestion running so flow stays accurate:
+Component 1 Jenkins/GitHub payloads
+Component 2 pipeline SBOM capture/finalize
+Component 3 incident/threat intel feeds
+Optionally set your pipeline/job name consistently as pipeline_id so the integration view resolves the correct pipeline automatically.

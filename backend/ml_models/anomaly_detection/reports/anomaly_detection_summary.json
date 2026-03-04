@@ -1,0 +1,37 @@
+{
+  "commit_pattern": {
+    "accuracy": 0.8035,
+    "precision": 0.9603580562659847,
+    "recall": 0.6747529200359389,
+    "f1": 0.7926121372031663,
+    "confusion_matrix": [
+      [
+        856,
+        31
+      ],
+      [
+        362,
+        751
+      ]
+    ],
+    "train_accuracy_internal": 0.978125,
+    "test_accuracy_internal": 0.95,
+    "classification_report": "              precision    recall  f1-score   support\n\n           0       0.70      0.97      0.81       887\n           1       0.96      0.67      0.79      1113\n\n    accuracy                           0.80      2000\n   macro avg       0.83      0.82      0.80      2000\nweighted avg       0.85      0.80      0.80      2000\n"
+  },
+  "dependency_anomaly": {
+    "accuracy": 0.5065,
+    "precision": 0.8425266903914591,
+    "recall": 0.5389869095048377,
+    "f1": 0.6574106213120444,
+    "confusion_matrix": [
+      [
+        66,
+        177
+      ],
+      [
+        810,
+        947
+      ]
+    ]
+  }
+}
