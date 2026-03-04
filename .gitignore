@@ -1,0 +1,5 @@
+node_modules
+done.txt
+VPS_DEPLOYMENT_AND_PROJECT_OVERVIEW.md
+backend/ml_models/integrity_verification/Microsoft Malware Classification Challenge/Dataset
+backend/ml_models/cicd_agents/HDFS Log Anomaly Detection
