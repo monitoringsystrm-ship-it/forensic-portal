@@ -95,7 +95,8 @@
   <header>
     <h1>Software Requirements Specification (SRS)</h1>
     <p><strong>System:</strong> Forensic Monitoring System for CI/CD Pipelines</p>
-    <p><strong>Version:</strong> 1.0</p>
+    <p><strong>Version:</strong> 2.0</p>
+    <p><strong>Tech stack:</strong> Jenkins + GitHub + Node.js/React + Docker; backend Flask/Python; front-end React.</p>
   </header>
 
   <section aria-labelledby="toc-title">
@@ -137,6 +138,12 @@
         <li><a href="#sec-4">4 Supporting Information</a></li>
         <li><a href="#sec-4-1">4.1 Table of Contents and Index</a></li>
         <li><a href="#sec-4-2">4.2 Appendices</a></li>
+        <li><a href="#sec-5">5 Implemented Features and Capabilities</a></li>
+        <li><a href="#sec-5-1">5.1 Component 1 – CI/CD Agents</a></li>
+        <li><a href="#sec-5-2">5.2 Component 2 – SBOM and Malware</a></li>
+        <li><a href="#sec-5-3">5.3 Component 3 – Incident Analysis</a></li>
+        <li><a href="#sec-5-4">5.4 Component 4 – Integration and UI</a></li>
+        <li><a href="#sec-5-5">5.5 Key API Endpoints</a></li>
       </ul>
     </nav>
   </section>
@@ -159,12 +166,7 @@
       <h3>1.2 Scope</h3>
       <p>
         This document covers functional and non-functional requirements for the
-        Forensic Monitoring System, including anomaly detection in CI/CD environments,
-        forensic-ready evidence collection, cryptographic integrity verification, and
-        legal-grade reporting and chain-of-custody management. It addresses the web
-        front-end, machine learning–based backend services, and their interactions, but
-        excludes detailed deployment automation, CI/CD job definitions, and third-party
-        SOC processes that may consume the system’s outputs.
+        Forensic Monitoring System. In scope: (1) <strong>Forensic-Ready CI/CD Agents</strong>—Jenkins and GitHub integration, build evidence capture, Docker context, command-sequence ML (benign/suspicious/malicious) with explainability; (2) <strong>SBOM and Malware</strong>—pipeline-stage SBOM (CycloneDX-style), Pipeline Merkle tree, verification service (pipeline integrity, CVE-affected builds, artifact provenance), Jenkins shared library (<code>sbomCapture</code>, <code>publishPipelineSBOM</code>), malware hash lookup; (3) <strong>Automated Incident Analysis</strong>—GitHub commit and dependency history ingestion, Jenkins build metrics, threat intel (CVE, npm/GitHub advisories, compromised packages), commit and dependency anomaly reports, incident timeline and trend analysis; (4) <strong>Chain of Custody and Integration</strong>—single flow from GitHub push through capture, SBOM, ML alerts, and block/alert decision; incident timeline visualization, pipeline integrity UI, forensic query by CVE and artifact hash, Merkle tree visualization. It addresses the React front-end, Flask/Python backend, and Jenkins/GitHub/Docker integrations; it excludes detailed deployment automation and third-party SOC processes that consume the system’s outputs.
       </p>
     </section>
 
@@ -212,7 +214,23 @@
         </tr>
         <tr>
           <td>HDFS</td>
-          <td>Hadoop Distributed File System, a distributed storage layer whose logs are analyzed by the system.</td>
+          <td>Hadoop Distributed File System, a distributed storage layer whose logs are analyzed by the system (legacy/optional).</td>
+        </tr>
+        <tr>
+          <td>Pipeline-stage SBOM</td>
+          <td>Software Bill of Materials per pipeline stage: environment, tools, input/output artifacts, and dependencies; extended CycloneDX/SPDX with pipelineStage, buildEnvironment, inputArtifacts, outputArtifacts.</td>
+        </tr>
+        <tr>
+          <td>Pipeline Merkle tree</td>
+          <td>Merkle tree whose leaves are stage SBOM hashes; supports add_stage, finalize_pipeline, verify_stage and proof chain per pipeline_id.</td>
+        </tr>
+        <tr>
+          <td>Command sequence classifier</td>
+          <td>ML model that classifies tokenized shell/Docker/npm command sequences as benign, suspicious, or malicious; outputs confidence, risk_level, and explainability (which command, why).</td>
+        </tr>
+        <tr>
+          <td>Forensic verification service</td>
+          <td>Backend service: verify_pipeline_integrity(pipeline_id), query_vulnerable_builds(cve_id), trace_artifact_provenance(artifact_hash).</td>
         </tr>
         </tbody>
       </table>
@@ -229,15 +247,7 @@
     <section id="sec-1-5">
       <h3>1.5 Overview</h3>
       <p>
-        The Forensic Monitoring System is a web-based platform that integrates with
-        CI/CD environments to continuously collect evidence, detect anomalies in logs
-        and deployment activity, verify the integrity of artifacts using cryptographic
-        mechanisms, and generate reports suitable for internal and external
-        investigations. It comprises a React-based front-end and a Python/Flask
-        backend exposing REST endpoints for model training, inference, evidence
-        aggregation, and report generation. Primary users include security engineers,
-        DevOps teams, and compliance or audit personnel who require timely, accurate,
-        and tamper-evident information about the software delivery pipeline.
+        The Forensic Monitoring System is a web-based platform targeting <strong>Jenkins + GitHub + Node.js/React + Docker</strong>. It integrates with CI/CD to: (1) ingest GitHub webhooks (push, PR) and Jenkins build payloads (stages, console output, env, Docker context); (2) run a command-sequence ML classifier and store timestamped evidence and commit→build mapping; (3) capture pipeline-stage SBOMs via an orchestrator and build a Pipeline Merkle tree, with verification and forensic query (CVE, artifact provenance); (4) ingest commits, dependency history, Jenkins build metrics, and threat intel to produce commit/dependency anomaly reports and an incident timeline; (5) expose an integrated flow (GitHub → capture → SBOM → ML → block/alert) and UI views for timeline, pipeline integrity, forensic query, and Merkle visualization. It comprises a React front-end and a Flask/Python backend with REST APIs for training, inference, evidence, SBOM capture/finalize, verification, and reporting. Primary users include security engineers, DevOps, and compliance personnel.
       </p>
     </section>
   </section>
@@ -266,12 +276,12 @@
         <h4>2.1.1 System Interfaces</h4>
         <p>
           The system is implemented as a web server exposing REST APIs and a
-          browser-based single-page application. It interfaces with the host operating
-          system through:
+          browser-based single-page application. It interfaces with:
         </p>
         <ul>
-          <li>File system access to local datasets including HDFS logs, Hadoop logs, NSL-KDD, UNSW-NB15, malware CSVs, and attack/breach CSVs.</li>
-          <li>Network sockets to serve HTTP or HTTPS requests.</li>
+          <li><strong>Inbound:</strong> GitHub webhooks (push, pull_request) and Jenkins build POSTs (build metadata, console output, env, Docker context); optional CI/CD agents posting evidence.</li>
+          <li><strong>File system:</strong> Local datasets (HDFS/Hadoop logs, NSL-KDD, UNSW-NB15, malware CSVs, attack/breach CSVs); pipeline SBOM store and evidence/CICD state under <code>data/</code>.</li>
+          <li><strong>Network:</strong> HTTP/HTTPS for REST API and UI; outbound optional (e.g. build status to GitHub).</li>
         </ul>
       </section>
 
@@ -279,17 +289,18 @@
         <h4>2.1.2 User Interfaces</h4>
         <p>
           The primary user interface is a responsive web dashboard with the following
-          top-level areas:
+          areas:
         </p>
         <ul>
-          <li>Forensic-Ready CI/CD Agents: configuration of evidence capture, agent status view, and HDFS or Hadoop anomaly summaries.</li>
-          <li>Anomaly Detection: automated detection panels, timelines, and training reports for commit and dependency patterns.</li>
-          <li>Integrity Verification: tools for SBOM hashing, SHA-256 verification, Merkle root computation, and digital signatures.</li>
-          <li>Forensic Reporting Portal: evidence timelines, integrity proofs, chain-of-custody views, ML training views, and report generator.</li>
+          <li><strong>Forensic-Ready CI/CD Agents:</strong> Agent status, evidence list, config (capture options); HDFS/Hadoop anomaly summaries; <strong>command sequence</strong> train/infer and <strong>command sequence alerts</strong> (build_id, command, confidence, risk_level) with link to evidence.</li>
+          <li><strong>Anomaly Detection:</strong> Commit/dependency/pipeline-tampering detection and training; <strong>Incident Analysis</strong> ingest (GitHub commits, dependency history, Jenkins patterns, threat intel), analyze, and latest report; <strong>incident timeline</strong> and <strong>commit/dependency anomaly reports</strong> (reasons, recommendation, typosquatting, BLOCK_INSTALL, similar_package).</li>
+          <li><strong>Integrity Verification:</strong> SBOM hash, SHA-256 verify, Merkle root from hashes, HMAC/Ed25519 sign/verify; <strong>pipeline SBOM</strong> capture/finalize, list pipelines, view pipeline stages and per-stage SBOM; <strong>verify pipeline</strong>; <strong>forensic query</strong> by CVE (affected builds) and by artifact hash (provenance chain); <strong>Merkle tree visualization</strong> (e.g. D3.js); Microsoft Malware classifier and malware hash lookup.</li>
+          <li><strong>Forensic Reporting Portal:</strong> Evidence visualization, chain-of-custody, integrity proofs, attack/breach ML models, report generator; incident timeline and pipeline integrity status in reporting context.</li>
+          <li><strong>Integrated Flow:</strong> Single flow status and decision (GitHub push → capture → SBOM → ML → block/alert); pipeline view with full flow and incident timeline.</li>
         </ul>
         <p>
           The interface is optimized for desktop but remains usable on tablets and
-          mobile devices through responsive layout and flexible grids.
+          mobile devices through responsive layout.
         </p>
       </section>
 
@@ -309,9 +320,9 @@
         </p>
         <ul>
           <li>Modern web browsers supporting ES6 JavaScript and the Fetch API.</li>
-          <li>Python runtime and libraries for ML including numerical processing, data frames, model training, and visualization.</li>
-          <li>Operating-system file system for loading training data and persisting models and reports.</li>
-          <li>Optional CI/CD tooling that may forward logs or events in future integrations.</li>
+          <li>Python runtime and Flask; ML libraries (e.g. scikit-learn, numpy, pandas) for training, inference, and visualization.</li>
+          <li>Operating-system file system for datasets, models, reports, and persisted state (e.g. <code>data/cicd_state.json</code>, <code>data/pipeline_sbom_store.json</code>, <code>data/incident_analysis_state.json</code>).</li>
+          <li>Jenkins via shared library (Groovy) calling backend REST APIs; GitHub via webhook delivery to backend; Docker context provided in Jenkins build payloads.</li>
         </ul>
       </section>
 
@@ -379,13 +390,15 @@
         Major functions of the Forensic Monitoring System include:
       </p>
       <ul>
-        <li>Continuous collection of CI/CD-related evidence including build logs and anomaly summaries.</li>
-        <li>Machine learning based anomaly detection for commit patterns, network-style dependency anomalies, and HDFS or Hadoop logs.</li>
-        <li>Visualization of evidence timelines and correlation of events across commits, builds, artifacts, and anomalies.</li>
-        <li>Generation and verification of cryptographic integrity artifacts including hashes, Merkle roots, HMACs, and digital signatures.</li>
-        <li>Chain-of-custody tracking for evidence including status, custodianship, and integrity checksums.</li>
-        <li>Training, evaluation, and reporting for ML models supporting attack and breach type classification.</li>
-        <li>Creation of standards aligned forensic reports with configurable content and export options.</li>
+        <li>Ingestion of GitHub webhooks (push, PR) and Jenkins build payloads (stages, console, env, Docker); storage of evidence with build UUID and timestamps; commit→build mapping.</li>
+        <li>Command-sequence ML: tokenize console into command sequences; classify benign/suspicious/malicious with confidence, risk_level, and explainability; persist command alerts and link to evidence.</li>
+        <li>Pipeline-stage SBOM: capture_stage_context (environment, tools, inputs, outputs, dependencies); extended CycloneDX-style schema; Pipeline Merkle tree (add_stage, finalize_pipeline, verify_stage) with proof chain per pipeline_id.</li>
+        <li>Forensic verification: verify_pipeline_integrity(pipeline_id); query_vulnerable_builds(cve_id); trace_artifact_provenance(artifact_hash).</li>
+        <li>Jenkins shared library: <code>sbomCapture('stageName') { ... }</code> and <code>publishPipelineSBOM()</code> for CI integration.</li>
+        <li>Incident analysis: ingest GitHub commits, dependency history, Jenkins build metrics, threat intel (CVE, npm/GitHub advisories, compromised packages); analyze with Isolation Forest and rule-based features; output commit anomaly report, dependency risk assessment, incident timeline, trend analysis.</li>
+        <li>Integrity and malware: SBOM hash, Merkle root, HMAC/Ed25519; Microsoft Malware classifier; malware hash lookup (e.g. known families); pipeline integrity and forensic query UIs.</li>
+        <li>Integrated flow: single flow GitHub → Component 1 (capture + command ML) → Component 2 (SBOM + malware) → Component 3 (commit/dep analysis) → Component 4 (block/alert); decision API for deployment gating.</li>
+        <li>Chain-of-custody, evidence correlation, attack/breach classifiers, and standards-aligned forensic report generation.</li>
       </ul>
     </section>
 
@@ -459,14 +472,15 @@
       <section id="sec-3-1-1">
         <h4>3.1.1 User Interfaces</h4>
         <p>
-          The system shall provide a browser-based UI with the following key screens:
+          The system shall provide a browser-based UI with the following:
         </p>
         <ul>
-          <li>A main navigation view with tabs for CI/CD Agents, Anomaly Detection, Integrity Verification, and Reporting Portal.</li>
-          <li>A CI/CD Agents view showing agent status, evidence counts, configuration controls, and HDFS or Hadoop anomaly overviews.</li>
-          <li>An Anomaly Detection view for running detection, viewing metrics, and exploring timelines of detected anomalies.</li>
-          <li>An Integrity Verification view offering SBOM hash computation, SHA-256 verification, Merkle root computation, and digital signature workflows.</li>
-          <li>A Reporting Portal view with evidence visualizations, integrity proofs, chain-of-custody logs, ML model status, and report generation.</li>
+          <li>Main navigation: tabs for CI/CD Agents, Anomaly Detection, Integrity Verification, Reporting Portal, and Integrated Flow.</li>
+          <li>CI/CD Agents: agent status, evidence list, config; HDFS/Hadoop anomaly summaries; command sequence train/infer and <strong>command sequence alerts</strong> (build_id, command, confidence, risk_level) linked to evidence.</li>
+          <li>Anomaly Detection: commit/dependency/pipeline-tampering detection and training; Incident Analysis ingest (commits, dependency history, Jenkins patterns, threat intel), analyze, latest; <strong>incident timeline</strong> and <strong>commit/dependency anomaly reports</strong> (reasons, recommendation, BLOCK_INSTALL, similar_package).</li>
+          <li>Integrity Verification: SBOM hash, SHA-256 verify, Merkle root; pipeline SBOM capture/finalize, list pipelines, pipeline detail (stages, per-stage SBOM); <strong>verify pipeline</strong>; <strong>forensic query</strong> by CVE and by artifact hash; <strong>Merkle tree visualization</strong>; Microsoft Malware and hash lookup.</li>
+          <li>Reporting Portal: evidence visualization, chain-of-custody, integrity proofs, attack/breach models, report generator; incident timeline and pipeline integrity in reporting context.</li>
+          <li>Integrated Flow: flow status and decision (block/alert/allow) for pipeline view with full flow and incident timeline.</li>
         </ul>
         <p>
           All screens shall be usable on displays down to common tablet and phone
@@ -548,6 +562,18 @@
         <li>
           UserSession or AccessContext (optional): represents user identity and roles
           if authentication and authorization are introduced in later versions.
+        </li>
+        <li>
+          PipelineSBOM / StageSBOM (essential): pipeline-stage SBOM with metadata.pipelineStage, buildEnvironment, inputArtifacts, outputArtifacts, components; CycloneDX-style.
+        </li>
+        <li>
+          PipelineMerkleProof (essential): root_hash, proof_chain, leaf_hashes, stages; supports verify_stage(stage_index, sbom, root, proof).
+        </li>
+        <li>
+          CommandAlert (essential): build_id, command, confidence, risk_level, why (explainability); linked to evidence.
+        </li>
+        <li>
+          IncidentAnalysisReport (essential): commit_anomalies, dependency_risks, build_anomalies, timeline, trends; anomaly_type, reasons, recommendation, BLOCK_INSTALL, similar_package.
         </li>
       </ul>
     </section>
@@ -656,6 +682,100 @@
         technical appendices or API documentation as JSON schemas to aid integration
         and testing.
       </p>
+      <h4>4.2.3 Additional References</h4>
+      <ul>
+        <li>CycloneDX SBOM specification; SPDX.</li>
+        <li>NEW_FEATURES_AND_IMPLEMENTATION.md – implementation guide and feature table for the Forensic-Ready CI/CD Security Framework.</li>
+      </ul>
+    </section>
+  </section>
+
+  <section id="sec-5">
+    <h2>5 Implemented Features and Capabilities</h2>
+    <p>
+      This section summarizes the implemented features aligned with the Forensic-Ready CI/CD Security Framework (see NEW_FEATURES_AND_IMPLEMENTATION.md). All items below are implemented in the current system.
+    </p>
+
+    <section id="sec-5-1">
+      <h3>5.1 Component 1 – Forensic-Ready CI/CD Agents</h3>
+      <ul>
+        <li><strong>Tech stack:</strong> Jenkins + Node.js/React + Docker (in addition to optional HDFS/Hadoop legacy agents).</li>
+        <li><strong>Inputs – GitHub:</strong> Webhooks for push, PR; commit SHA, author, timestamp; ingest and commit→build mapping.</li>
+        <li><strong>Inputs – Jenkins:</strong> Jenkinsfile/pipeline stages (build/test/dockerize); build_id, stage_name, stage_index, commit_sha, branch, tags; Node/npm/yarn context.</li>
+        <li><strong>Inputs – Build env:</strong> Redacted env vars, Docker daemon context; package.json/lock snapshots where applicable.</li>
+        <li><strong>Inputs – Runtime:</strong> Jenkins console output, tokenized command sequences, Docker build commands, npm install/build.</li>
+        <li><strong>Inputs – Docker:</strong> Dockerfile, build args, image metadata, tags (sent in Jenkins build payload).</li>
+        <li><strong>Outputs – Evidence:</strong> Timestamped build logs (JSON), env dumps (redacted), command traces; evidence list with types (build-logs, env-vars, docker-build, command-alert, github-event).</li>
+        <li><strong>Outputs – Docker:</strong> Image/tags and build context metadata in evidence.</li>
+        <li><strong>Outputs – GitHub:</strong> Commit→build mapping (SHA→build_id); API for mappings.</li>
+        <li><strong>Chain of custody:</strong> SHA-256 hashes, build UUID, timestamps; signing (HMAC, Ed25519) available.</li>
+        <li><strong>ML – Command sequence:</strong> Tokenized command sequences; classifier (benign/suspicious/malicious); confidence, risk_level; per-command anomaly score; alert JSON with build_id, command, confidence, risk_level, explainability (why).</li>
+      </ul>
+    </section>
+
+    <section id="sec-5-2">
+      <h3>5.2 Component 2 – SBOM and Malware Detection</h3>
+      <ul>
+        <li><strong>Pipeline-stage SBOM:</strong> Per-stage capture of env, tools, inputs, outputs, deps; extended CycloneDX-style schema with pipelineStage, buildEnvironment, inputArtifacts, outputArtifacts, components.</li>
+        <li><strong>Orchestrator:</strong> PipelineSBOMOrchestrator – capture_stage_context(), capture_environment(), capture_tools_used(), capture_inputs/outputs(), generate_dependency_sbom().</li>
+        <li><strong>Merkle integration:</strong> Pipeline Merkle tree – add_stage(stage_sbom), finalize_pipeline() → root + proof chain, verify_stage(); leaf = stage_name, index, sbom_hash, timestamp.</li>
+        <li><strong>CI integration:</strong> Jenkins shared library – <code>sbomCapture('stageName') { ... }</code>, <code>publishPipelineSBOM()</code>.</li>
+        <li><strong>Verification service:</strong> verify_pipeline_integrity(pipeline_id), query_vulnerable_builds(cve_id), trace_artifact_provenance(artifact_hash).</li>
+        <li><strong>Malware:</strong> Microsoft Malware classifier (PE); SBOM hash lookup (e.g. known malware families); Node/npm context where applicable.</li>
+      </ul>
+    </section>
+
+    <section id="sec-5-3">
+      <h3>5.3 Component 3 – Automated Forensic Incident Analysis</h3>
+      <ul>
+        <li><strong>GitHub commits:</strong> Ingest full commit history; metadata, diffs; contributor behavior and time patterns.</li>
+        <li><strong>Contributor behavior:</strong> Commit frequency, time patterns; features in commit anomaly model.</li>
+        <li><strong>Dependency history:</strong> package.json/lockfile changes, version bumps, new deps; ingest and analyze.</li>
+        <li><strong>Jenkins patterns:</strong> Build frequency, duration, success/failure, resource use, Docker image size; ingested and used in trend analysis.</li>
+        <li><strong>Threat intel:</strong> CVE, npm advisories, GitHub advisories, compromised package lists; ingest and use in dependency/build risk scoring.</li>
+        <li><strong>ML – Commit anomaly:</strong> Isolation Forest + rule-based features; anomaly_type, reasons, recommendation (MANUAL_REVIEW, ELEVATED_MONITORING, ALLOW).</li>
+        <li><strong>ML – Dependency anomaly:</strong> Typosquatting, Levenshtein, Isolation Forest; BLOCK_INSTALL, similar_package, detection_method.</li>
+        <li><strong>Outputs:</strong> Commit anomaly report JSON; dependency risk assessment JSON; incident timeline (commit→build→deploy); trend analysis.</li>
+      </ul>
+    </section>
+
+    <section id="sec-5-4">
+      <h3>5.4 Component 4 – Chain of Custody and Integration</h3>
+      <ul>
+        <li><strong>Integration flow:</strong> Single flow: GitHub push → Component 1 (capture + command ML) → Component 2 (SBOM + malware) → Component 3 (commit/dep analysis) → Component 4 (block/alert).</li>
+        <li><strong>UI – Incident timeline:</strong> Timeline visualization with commit → build → deployment and anomaly/alert annotations.</li>
+        <li><strong>UI – Pipeline integrity:</strong> Pipeline list, pipeline detail, per-stage SBOM summary, Merkle root and proof chain; “Verify pipeline” action.</li>
+        <li><strong>UI – Forensic query:</strong> Query by CVE (affected builds); query by artifact hash (provenance chain + verification status).</li>
+        <li><strong>UI – Merkle tree visualization:</strong> Tree of pipeline stages and hashes (e.g. D3.js).</li>
+        <li><strong>UI – Command sequence alerts:</strong> List alerts (build_id, command, confidence, risk_level) under CI/CD Agents; link to evidence.</li>
+        <li><strong>UI – Commit and dependency anomaly reports:</strong> Display reasons, recommendation, typosquatting, BLOCK_INSTALL, similar_package.</li>
+      </ul>
+    </section>
+
+    <section id="sec-5-5">
+      <h3>5.5 Key API Endpoints</h3>
+      <p>Representative endpoints implemented (base path configurable; typically <code>/api/ml/</code>):</p>
+      <table>
+        <thead>
+          <tr><th>Area</th><th>Endpoint (method)</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Health</td><td>/api/ml/health (GET)</td><td>Service and model status</td></tr>
+          <tr><td>CI/CD – GitHub</td><td>/api/ml/cicd-agents/github/webhook (POST)</td><td>Receive GitHub push/PR events</td></tr>
+          <tr><td>CI/CD – Jenkins</td><td>/api/ml/cicd-agents/jenkins/build (POST)</td><td>Receive Jenkins build payload (evidence, command ML)</td></tr>
+          <tr><td>CI/CD – Evidence</td><td>/api/ml/cicd-agents/evidence (GET)</td><td>List evidence items</td></tr>
+          <tr><td>CI/CD – Mappings</td><td>/api/ml/cicd-agents/mappings/commit-build (GET)</td><td>Commit→build mapping</td></tr>
+          <tr><td>CI/CD – Command sequence</td><td>/api/ml/cicd-agents/command-sequence/train (POST), infer (POST), latest (GET)</td><td>Train, infer, latest alerts</td></tr>
+          <tr><td>Pipeline SBOM</td><td>/api/ml/integrity-verification/pipeline-sbom/capture (POST), finalize (POST)</td><td>Capture stage SBOM, finalize Merkle</td></tr>
+          <tr><td>Pipeline SBOM</td><td>/api/ml/integrity-verification/pipeline-sbom/pipeline/&lt;id&gt; (GET), pipelines (GET)</td><td>Get pipeline, list pipelines</td></tr>
+          <tr><td>Verification</td><td>/api/ml/integrity-verification/verification/verify-pipeline/&lt;id&gt; (GET)</td><td>Verify pipeline integrity</td></tr>
+          <tr><td>Verification</td><td>/api/ml/integrity-verification/verification/query-vulnerable-builds (GET)</td><td>Query by CVE</td></tr>
+          <tr><td>Verification</td><td>/api/ml/integrity-verification/verification/trace-artifact (GET)</td><td>Trace artifact provenance by hash</td></tr>
+          <tr><td>Incident analysis</td><td>/api/ml/anomaly-detection/incident/ingest/github-commits (POST), dependency-history (POST), jenkins-patterns (POST), threat-intel (POST)</td><td>Ingest data</td></tr>
+          <tr><td>Incident analysis</td><td>/api/ml/anomaly-detection/incident/analyze (POST), latest (GET)</td><td>Run analysis, get latest report</td></tr>
+          <tr><td>Integration flow</td><td>/api/ml/integration/flow/status (GET), decision (POST)</td><td>Flow status and block/alert/allow decision</td></tr>
+        </tbody>
+      </table>
     </section>
   </section>
 </main>
