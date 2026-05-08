@@ -1,4 +1,4 @@
-@Library('sbom-forensics') _
+@Library('shared-library') _
 
 pipeline {
   agent any
